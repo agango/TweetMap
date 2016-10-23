@@ -17,11 +17,6 @@ mylocation = []
 mylocation.append(40.741895)
 mylocation.append(-73.989308)
 
-
-def data():
-	es=Elasticsearch()
-	res=es.search(index)
-
 class StdOutListener(StreamListener):
 
     def on_data(self, doc_data):
@@ -40,7 +35,7 @@ def main():
 	return render_template('index.html', context=mylocation)
 
 if __name__ == "__main__":
-	app.run()
+	app.run(debug=True)
 	while True:
 		try:
 			l = StdOutListener()
@@ -51,5 +46,3 @@ if __name__ == "__main__":
 
 		except AttributeError:
 			continue
-
-	
