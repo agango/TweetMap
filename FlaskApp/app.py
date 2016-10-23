@@ -16,46 +16,41 @@ mylocation = []
 mylocation.append(40.741895)
 mylocation.append(-73.989308)
 es=Elasticsearch("https://search-tweetmapcloud-sx3dvn7cnmdzc3ncz7w2zw7w6m.us-west-2.es.amazonaws.com")
-
-
 class StdOutListener(StreamListener):
-
     def on_data(self, doc_data):
-    	try:
-    		res=es.index(index="test-index", doc_type='tweet', body=doc_data)
-    		print res['created']
-    	except ValueError:
-    		return 
+        try:
+            res=es.index(index="cloud", doc_type='tweet', body=doc_data)
+            print res['created']
+        except ValueError:
+            return 
 
-	def on_error(self, status):
-		print status
+    def on_error(self, status):
+        print status
 
+
+newRes=es.search(index="cloud", body={"query":{"match":{"_all":"trump"}}})
+for val in newRes['hits']['hits']:
+    if 'coordinates' in val.keys():
+        print val['coordinates']
+    
 app=Flask(__name__)
 @app.route("/")
 def main():
-	
-	return render_template('index.html', context=mylocation)
+    return render_template('index.html', context=mylocation)
 
 if __name__ == "__main__":
-	#app.run(debug=True)
-	while True:
-		try:
-			l = StdOutListener()
-			auth = OAuthHandler(consumer_key, consumer_secret)
-			auth.set_access_token(access_token, access_token_secret)
-			stream = Stream(auth, l)
-			stream.filter(track=['trump'])
+    print ""
+    #app.run(debug=True)
+    while True:
+        try:
+            l = StdOutListener()
+            auth = OAuthHandler(consumer_key, consumer_secret)
+            auth.set_access_token(access_token, access_token_secret)
+            stream = Stream(auth, l)
+            stream.filter(track=['trump'], locations=[-180, -90, 180, 90])
 
-		except AttributeError:
-			continue
-
-
-
-
-
-
-
-
+        except AttributeError:
+            continue
 
 
 
