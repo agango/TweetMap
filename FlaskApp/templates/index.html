@@ -13,16 +13,44 @@
     <div id="map"></div>
     <script>
       function initMap() {
-        var uluru = {lat: -25.363, lng: 131.044};
+        var uluru = {lat: {{context[0]}}, lng: {{context[1]}}};
         var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 4,
+          zoom: 2,
           center: uluru
         });
-        var marker = new google.maps.Marker({
-          position: uluru,
-          map: map
+        // var marker = new google.maps.Marker({
+        //   position: uluru,
+        //   map: map
+        // });
+        var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        var markers = locations.map(function(location, i) {
+          return new google.maps.Marker({
+            position: location,
+            label: labels[i % labels.length]
+          });
         });
+
+        // Add a marker clusterer to manage the markers.
+        var markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
       }
+      var locations = [
+        {lat: {{context[0]}}, lng: {{context[1]}} },
+        {lat: -33.718234, lng: {{context[1]}}},
+        {lat: {{context[0]}}, lng: 150.371124},
+        {lat: -33.848588, lng: 151.209834},
+        {lat: -33.851702, lng: 151.216968},
+        {lat: -34.671264, lng: 150.863657},
+        {lat: -35.304724, lng: 148.662905},
+        {lat: -36.817685, lng: 175.699196},
+        {lat: -36.828611, lng: 175.790222},
+        {lat: -37.750000, lng: 145.116667},
+        {lat: -37.759859, lng: 145.128708},
+        {lat: -37.765015, lng: 145.133858},
+
+      ]
+    </script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
     </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX5jl_Xa7w&callback=initMap">
