@@ -3,7 +3,7 @@
   <head>
     <style>
        #map {
-        height: 400px;
+        height: 600px;
         width: 100%;
        }
     </style>
@@ -13,42 +13,43 @@
     <div id="map"></div>
     <script>
       function initMap() {
-        var uluru = {lat: {{context[0]}}, lng: {{context[1]}}};
+
+        var con={{context|safe}};
+        console.log(con);
+        var uluru = con[0];
+        //var uluru = {lat: {{context[0]['lat']}}, lng: {{context[0]['lng']}}};
         var map = new google.maps.Map(document.getElementById('map'), {
           zoom: 2,
+             minZoom: 2,
           center: uluru
         });
-        // var marker = new google.maps.Marker({
-        //   position: uluru,
-        //   map: map
-        // });
+
+
+        var infowindow = new google.maps.InfoWindow();
+
+
         var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        var markers = locations.map(function(location, i) {
-          return new google.maps.Marker({
-            position: location,
+        var markers = con.map(function(location, i) {
+
+          var mark  = new google.maps.Marker({
+             position: {lat: location['lat'], lng: location['lng'] },
             label: labels[i % labels.length]
+            
           });
+
+          google.maps.event.addListener(mark, 'click', function() {
+          infowindow.setContent(location['tweet']); 
+          infowindow.open(map,mark);
+          });
+
+          return mark;
         });
 
         // Add a marker clusterer to manage the markers.
         var markerCluster = new MarkerClusterer(map, markers,
             {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
       }
-      var locations = [
-        {lat: {{context[0]}}, lng: {{context[1]}} },
-        {lat: -33.718234, lng: {{context[1]}}},
-        {lat: {{context[0]}}, lng: 150.371124},
-        {lat: -33.848588, lng: 151.209834},
-        {lat: -33.851702, lng: 151.216968},
-        {lat: -34.671264, lng: 150.863657},
-        {lat: -35.304724, lng: 148.662905},
-        {lat: -36.817685, lng: 175.699196},
-        {lat: -36.828611, lng: 175.790222},
-        {lat: -37.750000, lng: 145.116667},
-        {lat: -37.759859, lng: 145.128708},
-        {lat: -37.765015, lng: 145.133858},
 
-      ]
     </script>
     <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
     </script>
