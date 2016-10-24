@@ -8,22 +8,55 @@
        }
     </style>
   </head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> <!-- adding jQuery.js -->
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX5jl_Xa7w&callback=initMap">
+    </script>
   <body>
+    <form class="form-horizontal" id="keyword_select_form">
+    <div class="form-group">
+
+      <label for="select" class="col-sm-2 control-label">Select Word for Tweet Search</label>
+        <div class="col-sm-10">
+            <select class="form-control" id="selected_keyword">
+                <option selected="selected">chelsea</option>
+                <option>premier</option>
+                <option>pokemon</option>
+                <option>fruit</option>
+                <option>food</option>
+                <option>coffee</option>
+                <option>pizza</option>
+                <option>california</option>
+            </select>
+        </div>
+      </div>
+      <div class="form-group">
+          <div class="col-sm-10 col-sm-offset-2">
+              <button type="reset" class="btn btn-default">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+      </div>
+      </form>
+
     <h3>TwittMap</h3>
     <div id="map"></div>
     <script>
+
+    var map;
+    var markerCluster;
       function initMap() {
 
         var con={{context|safe}};
         console.log(con);
-        var uluru = con[0];
-        //var uluru = {lat: {{context[0]['lat']}}, lng: {{context[0]['lng']}}};
-        var map = new google.maps.Map(document.getElementById('map'), {
+
+        var uluru = con[0]['latlng'];
+        window.map = new google.maps.Map(document.getElementById('map'), {
           zoom: 2,
-             minZoom: 2,
+          minZoom: 2,
           center: uluru
         });
-
 
         var infowindow = new google.maps.InfoWindow();
 
@@ -32,7 +65,36 @@
         var markers = con.map(function(location, i) {
 
           var mark  = new google.maps.Marker({
-             position: {lat: location['lat'], lng: location['lng'] },
+             position: location['latlng'],
+            label: labels[i % labels.length]
+            
+          });
+
+          google.maps.event.addListener(mark, 'click', function() {
+          infowindow.setContent(location['tweet']); 
+          infowindow.open(map,mark);
+          });
+
+        return mark;
+        });
+
+        window.markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+      
+
+
+      }
+      function loadtweet(resp){
+
+
+        var infowindow = new google.maps.InfoWindow();
+
+
+        var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        var markers = resp.results.map(function(location, i) {
+
+          var mark  = new google.maps.Marker({
+             position: location['latlng'],
             label: labels[i % labels.length]
             
           });
@@ -45,16 +107,48 @@
           return mark;
         });
 
+
         // Add a marker clusterer to manage the markers.
-        var markerCluster = new MarkerClusterer(map, markers,
+
+        window.markerCluster = new MarkerClusterer(map, markers,
             {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
       }
 
+
+
+  document.getElementById('keyword_select_form').addEventListener('submit', function (e) {
+      console.log("inside form function 1");
+      e.preventDefault();
+      // add remove_marker function here
+
+      console.log("inside form function 2");
+      // when submit is hit, make ajax call, get tweet
+      search_by_keyword();
+
+
+   }, false);
+
+  function search_by_keyword() {
+
+    console.log(selected_keyword.value);
+       $.ajax({
+      url: '/search/' + selected_keyword.value,
+      type: 'GET',
+      success: function(response) {
+
+         //console.log(JSON.stringify(response));
+         loadtweet(response);
+      },
+      error: function(error) {
+        console.log("erorr");
+         //console.log(JSON.stringify(error));
+
+      }
+   });
+    
+  }
+
     </script>
-    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
-    </script>
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX5jl_Xa7w&callback=initMap">
-    </script>
+    
   </body>
 </html>
