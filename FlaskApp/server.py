@@ -29,8 +29,8 @@ class StdOutListener(StreamListener):
             data["text"]=json_data['text']
             data["name"]=json_data['user']['name']
             data["created_at"]=json_data['created_at']
-            print data
             res=es.index(index="cloud", doc_type='tweet', body=data)
+            print data
             print res['created']
         except:
             return 
