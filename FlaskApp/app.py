@@ -1,5 +1,5 @@
 import json
-import requests
+from flask import request
 from elasticsearch import Elasticsearch
 from flask import Flask, render_template, jsonify
 
@@ -20,7 +20,7 @@ locations = [
 
 js_value = json.dumps(locations)
 
-es=Elasticsearch("https://search-newtweetmapcloud-cqcpw6xnfeq2dnscys2soadpe4.us-west-2.es.amazonaws.com")
+es=Elasticsearch([{'host':"search-newtweetmap-5jvth6g6xzg4zohqr2oxc33gda.us-west-2.es.amazonaws.com", 'port':80, 'use_ssl':False}])
     
 app=Flask(__name__)
 @app.route("/")
@@ -29,22 +29,48 @@ def main():
 
 
 newlocations=[]
+@app.route("/search", methods=["GET", "POST"])
+def searchtweet():
+    lat=request.form['lat']
+    lng=request.form['lng'];
+    print lat, lng
+    newRes=es.search(index="finalcloud", body={
+        "query":{
+            "filtered":{
+                 "filter":{
+                    "geo_distance" : {
+                        "distance" : "1000km", 
+                        "location":{
+                            "lat" : lng, 
+                            "lon" : lat
+                        }
+                    }
+                }
+            }
+        }
+    })
+    counter=0
+    for val in newRes['hits']['hits']:
+        counter+=1
+        newlocations.append({'latlng':{'lat':val["_source"]["location"]["lon"], 'lng':val["_source"]["location"]["lat"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
+    print counter
+    return jsonify(results=newlocations)
+
 @app.route("/search/<searchword>",methods=["GET"])
 def search(searchword):
-    newRes=es.search(index="cloud", body={
+    newRes=es.search(index="finalcloud", body={
         "query":
             {"match":
                 {"_all":
                     searchword
                 }
             },
-        "size": 1000
+            "size":100
     })
     counter=0
     for val in newRes['hits']['hits']:
         counter+=1
-        newlocations.append({'latlng':{'lat':val["_source"]["longtitude"], 'lng':val["_source"]["lat"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
-    print counter
+        newlocations.append({'latlng':{'lat':val["_source"]["location"]["lon"], 'lng':val["_source"]["location"]["lat"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
     return jsonify(results=newlocations)
 
 if __name__ == "__main__":
