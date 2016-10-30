@@ -73,8 +73,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX
     markers=[]
   }
   function newclick(resp){
-    remove();
-    window.markerCluster.clearMarkers();
+ 
     var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     var infowindow = new google.maps.InfoWindow();
     for(var i = 0; i<resp['results'].length; i++){
@@ -163,6 +162,8 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX
       
 
       function search_tweets(lat, lng){
+        remove();
+        window.markerCluster.clearMarkers();
         newData={"lat":lat, "lng":lng};
         $.ajax({
             type:'POST',
