@@ -33,32 +33,33 @@ newlocations=[]
 def searchtweet():
     lat=request.form['lat']
     lng=request.form['lng'];
-    print lat, lng
-    newRes=es.search(index="finalcloud", body={
+
+    newRes=es.search(index="newfinaltweetmap", body={
         "query":{
             "filtered":{
                  "filter":{
                     "geo_distance" : {
                         "distance" : "1000km", 
                         "location":{
-                            "lat" : lng, 
-                            "lon" : lat
+                            "lat" : lat, 
+                            "lon" : lng
                         }
                     }
                 }
             }
-        }
+        }, 
+        "size":100
     })
     counter=0
     for val in newRes['hits']['hits']:
         counter+=1
-        newlocations.append({'latlng':{'lat':val["_source"]["location"]["lon"], 'lng':val["_source"]["location"]["lat"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
+        newlocations.append({'latlng':{'lat':val["_source"]["location"]["lat"], 'lng':val["_source"]["location"]["lon"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
     print counter
     return jsonify(results=newlocations)
 
 @app.route("/search/<searchword>",methods=["GET"])
 def search(searchword):
-    newRes=es.search(index="finalcloud", body={
+    newRes=es.search(index="newfinaltweetmap", body={
         "query":
             {"match":
                 {"_all":
@@ -70,7 +71,7 @@ def search(searchword):
     counter=0
     for val in newRes['hits']['hits']:
         counter+=1
-        newlocations.append({'latlng':{'lat':val["_source"]["location"]["lon"], 'lng':val["_source"]["location"]["lat"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
+        newlocations.append({'latlng':{'lat':val["_source"]["location"]["lat"], 'lng':val["_source"]["location"]["lon"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
     return jsonify(results=newlocations)
 
 if __name__ == "__main__":
