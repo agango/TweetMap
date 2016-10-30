@@ -20,7 +20,7 @@ locations = [
 
 js_value = json.dumps(locations)
 
-es=Elasticsearch()
+es=Elasticsearch([{'host':"search-newtweetmap-5jvth6g6xzg4zohqr2oxc33gda.us-west-2.es.amazonaws.com", 'port':80, 'use_ssl':False}])
     
 app=Flask(__name__)
 @app.route("/")
@@ -33,16 +33,16 @@ newlocations=[]
 def searchtweet():
     lat=request.form['lat']
     lng=request.form['lng'];
-    #queries all tweets within 20 km of the point on the map the user clicked on
-    newRes=es.search(index="newtweetcloudfinal", body={
+    print lat, lng
+    newRes=es.search(index="finalcloud", body={
         "query":{
             "filtered":{
                  "filter":{
                     "geo_distance" : {
-                        "distance" : "20km", 
-                        "location" : {
-                            "lat" : lat, 
-                            "lon" : lng
+                        "distance" : "1000km", 
+                        "location":{
+                            "lat" : lng, 
+                            "lon" : lat
                         }
                     }
                 }
@@ -53,18 +53,19 @@ def searchtweet():
     for val in newRes['hits']['hits']:
         counter+=1
         newlocations.append({'latlng':{'lat':val["_source"]["location"]["lon"], 'lng':val["_source"]["location"]["lat"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
+    print counter
     return jsonify(results=newlocations)
 
 @app.route("/search/<searchword>",methods=["GET"])
 def search(searchword):
-    newRes=es.search(index="newtweetcloudfinal", body={
+    newRes=es.search(index="finalcloud", body={
         "query":
             {"match":
                 {"_all":
                     searchword
                 }
             },
-        "size": 1000
+            "size":100
     })
     counter=0
     for val in newRes['hits']['hits']:

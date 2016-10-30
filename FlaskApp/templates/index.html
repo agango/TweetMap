@@ -49,7 +49,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX
       console.log(con);
 
       var uluru = con[0]['latlng'];
-      window.map = new google.maps.Map(document.getElementById('map'), {
+      map=window.map = new google.maps.Map(document.getElementById('map'), {
         zoom: 2,
         minZoom: 2,
         center: uluru
@@ -62,15 +62,43 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX
 
       window.markerCluster = new MarkerClusterer(map, markers,
         {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
-
-
-
+      window.map.addListener('click', function(e){
+        search_tweets(e.latLng.lat(), e.latLng.lng());
+      });
   }
   function remove(){
     for (var i = 0; i<markers.length; i++){
         markers[i].setMap(null);
     }
     markers=[]
+  }
+  function newclick(resp){
+    remove();
+    window.markerCluster.clearMarkers();
+    var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var infowindow = new google.maps.InfoWindow();
+    for(var i = 0; i<resp['results'].length; i++){
+        contentString='text: '+resp['results'][i]['text']+', name: '+resp['results'][i]['name'];
+        //infowindows.push(infowindow);
+        var mark  = new google.maps.Marker({
+          position: resp['results'][i]['latlng'],
+          label: labels[i % labels.length], 
+        });
+        //console.log(infowindows[0].content);
+        /*mark.addListener('click', function(){
+            infowindows[i].open(window.map, mark);
+        });*/
+        google.maps.event.addListener(mark, 'click', (function(mark, contentString, infowindow){
+            return function(){
+                infowindow.setContent(contentString);
+                infowindow.open(map, mark);
+            }
+        })(mark, contentString, infowindow));
+        mark.setMap(map);
+        markers.push(mark);
+    }
+     window.markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
   }
   function newtweet(resp){
       remove();
@@ -94,7 +122,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX
                 infowindow.open(map, mark);
             }
         })(mark, contentString, infowindow));
-        mark.setMap(window.map);
+        mark.setMap(map);
         markers.push(mark);
       }
       duplicates=resp['results'].length;
@@ -132,6 +160,19 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0UugD-oBJ9YuYS__BzrJfNXX
 
 
     }, false);
+      
+
+      function search_tweets(lat, lng){
+        newData={"lat":lat, "lng":lng};
+        $.ajax({
+            type:'POST',
+            url:'/search',
+            data:newData,
+            success: function(response){
+                newclick(response);
+            }
+        });
+      }
 
       function search_keyword() {
 
