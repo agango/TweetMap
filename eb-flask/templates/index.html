@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+       #map {
+        height: 600px;
+        width: 100%;
+       }
+    </style>
+  </head>
+  <body>
+    <h3>TwittMap</h3>
+    <div id="map"></div>
+    <script>
+      function initMap() {
+
+        var con={{context|safe}};
+        console.log(con);
+        var uluru = con[0];
+        //var uluru = {lat: {{context[0]['lat']}}, lng: {{context[0]['lng']}}};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 2,
+             minZoom: 2,
+          center: uluru
+        });
+
+
+        var infowindow = new google.maps.InfoWindow();
+
+
+        var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        var markers = con.map(function(location, i) {
+
+          var mark  = new google.maps.Marker({
+             position: {lat: location['lat'], lng: location['lng'] },
+            label: labels[i % labels.length]
+            
+          });
+
+          google.maps.event.addListener(mark, 'click', function() {
+          infowindow.setContent(location['tweet']); 
+          infowindow.open(map,mark);
+          });
+
+          return mark;
+        });
+
+        // Add a marker clusterer to manage the markers.
+        var markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+      }
+
+    </script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCartbLzZ3WO9nZ0J1FGiMqkg0NKkQf174&callback=initMap">
+    </script>
+  </body>
+</html>
