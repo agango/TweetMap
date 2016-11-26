@@ -17,10 +17,9 @@ locations = [
 
       ]
 
-
 js_value = json.dumps(locations)
 
-es=Elasticsearch([{'host':"search-newtweetmap-5jvth6g6xzg4zohqr2oxc33gda.us-west-2.es.amazonaws.com", 'port':80, 'use_ssl':False}])
+es=Elasticsearch([{'host':"search-tweet-3jeiq36jepy2fixj7nbot6kzci.us-east-1.es.amazonaws.com", 'port':80, 'use_ssl':False}])
     
 application=Flask(__name__)
 @application.route("/")
@@ -54,7 +53,7 @@ def searchtweet():
     for val in newRes['hits']['hits']:
         counter+=1
         newlocations.append({'latlng':{'lat':val["_source"]["location"]["lat"], 'lng':val["_source"]["location"]["lon"]}, 'text':val["_source"]["text"], 'name':val["_source"]["name"]})
-    print counter
+    print(counter)
     return jsonify(results=newlocations)
 
 @application.route("/search/<searchword>",methods=["GET"])
@@ -75,7 +74,7 @@ def search(searchword):
     return jsonify(results=newlocations)
 
 if __name__ == "__main__":
-    application.run(debug=True, port=80)
+    application.run(debug=True, port=8080)
 
 
 

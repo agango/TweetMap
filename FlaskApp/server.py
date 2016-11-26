@@ -52,14 +52,10 @@ class StdOutListener(StreamListener):
             data["text"]=json_data['text']
 
             tweets.append(data)
-            
-            print("before queue")
-            addto_queue(data)
-            
-            # addto_elastic(body)
-
-            process_message()
-            print("after process")
+            if(len(tweets)>3):
+                return False
+            print("added")
+            print(data)
 
         except:
             print(traceback.print_exc())
@@ -82,49 +78,47 @@ queue = sqs.get_queue_by_name(QueueName='tweetmapSQS')
 
 def addto_queue(data):
 
+
     js_value = json.dumps(data)
     response = queue.send_message(MessageBody=js_value)
     # response = queue.send_message(MessageBody='boto3',MessageAttributes=data)
-    print(response.get('MessageId'))
-    print(response.get('MD5OfMessageBody'))
+    print("added to queue")
+
+
+
 
 alchemy_language = AlchemyLanguageV1(api_key='b144cdedbb632e744d1acdaa34198f7c3fb42a75')
 
-
 def process_message():
-    n = 0
     for message in queue.receive_messages(MessageAttributeNames=['name']):
-        print(str(n))
-        n = n + 1
-        # # Get the custom author message attribute if it was set
-        # author_text = ''
-        # if message.message_attributes is not None:
-        #     author_name = message.message_attributes.get('Author').get('StringValue')
-        #     if author_name:
-        #         author_text = ' ({0})'.format(author_name)
+        lis = json.loads(format(message.body))
+        for tweet in lis:
 
-        # # Print out the body and author (if set)
-        print('{0}'.format(message.body))
+            print(tweet)
+            # print('{0}'.format(message.body))
 
-
-        response = json.dumps(alchemy_language.sentiment(
-            text=('{0}'.format(message.body))),
-          indent=2)
-        print(response)
-        # message.delete()
+            response = json.dumps(alchemy_language.sentiment(
+                text=tweet['text']),
+              indent=2)
+            print(response)
+        message.delete()
 
 
 
-# if __name__ == "__main__":
-#     while True:
-#         try:
-#             # l = StdOutListener()
-#             # auth = OAuthHandler(consumer_key, consumer_secret)
-#             # auth.set_access_token(access_token, access_token_secret)
-#             # stream = Stream(auth, l)
-#             # stream.filter(track=['car', 'house', 'country'])
+if __name__ == "__main__":
+    while True:
+        try:
             
+            l = StdOutListener()
+            auth = OAuthHandler(consumer_key, consumer_secret)
+            auth.set_access_token(access_token, access_token_secret)
+            stream = Stream(auth, l)
+            stream.filter(languages=["en"],track=['car', 'house', 'country'])
+            break
+        except:
+            continue
 
-#         except:
-#             continue
+print("about to add tweets to SQS que")
+addto_queue(tweets)
+print("about to process")
 process_message()
