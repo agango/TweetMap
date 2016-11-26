@@ -20,11 +20,42 @@ locations = [
 js_value = json.dumps(locations)
 
 es=Elasticsearch([{'host':"search-tweet-3jeiq36jepy2fixj7nbot6kzci.us-east-1.es.amazonaws.com", 'port':80, 'use_ssl':False}])
+
+
     
 application=Flask(__name__)
 @application.route("/")
 def main():
     return render_template('index.html', context=js_value)
+
+def msg_process(msg, tstamp):
+    js = json.loads(msg)
+    msg = 'Region: {0} / Alarm: {1}'.format(
+        js['Region'], js['AlarmName']
+    )
+    print(js)
+    # do stuff here, like calling your favorite SMS gateway API
+
+@application.route('/sns', methods = ['GET', 'POST', 'PUT'])
+def sns():
+    # AWS sends JSON with text/plain mimetype
+    try:
+        js = json.loads(request.data)
+    except:
+        pass
+
+    hdr = request.headers.get('X-Amz-Sns-Message-Type')
+    # subscribe to the SNS topic
+    if hdr == 'SubscriptionConfirmation' and 'SubscribeURL' in js:
+        r = requests.get(js['SubscribeURL'])
+        print("subscribeURL")
+        print(r)
+
+    if hdr == 'Notification':
+        print("notification")
+        msg_process(js['Message'], js['Timestamp'])
+
+    return 'OK\n'
 
 
 newlocations=[]
