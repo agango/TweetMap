@@ -32,9 +32,11 @@ def main():
 
 
 def addto_elastic(data):
+    #right now 'data' has the unicode 'u' attached to it, make sure thats not a problem
     res=es.index(index="newfinaltweetmap", doc_type='tweet', body=data)
     print (res['created'])
-    #idk if this updates the tweeets
+    #idk if this updates the tweeets, but notify the frontend and update the tweet display
+
     searchtweet()
 
 
@@ -47,7 +49,6 @@ def msg_process(msg, tstamp):
     print(js)
     addto_elastic(js)
     print("added to elasticsearch")
-    # do stuff here, like calling your favorite SMS gateway API
 
 @application.route('/sns', methods = ['GET', 'POST', 'PUT'])
 def sns():

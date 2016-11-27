@@ -53,7 +53,7 @@ class StdOutListener(StreamListener):
             data["text"]=json_data['text']
 
             tweets.append(data)
-            if(len(tweets)>2):
+            if(len(tweets)>6):
                 return False
             print("added")
             print(data)
