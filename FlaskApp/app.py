@@ -34,6 +34,7 @@ def main():
 def addto_elastic(data):
     res=es.index(index="newfinaltweetmap", doc_type='tweet', body=data)
     print (res['created'])
+    #idk if this updates the tweeets
     searchtweet()
 
 
