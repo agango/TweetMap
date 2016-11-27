@@ -101,6 +101,7 @@ def process_message():
                 text=tweet['text']),
               indent=2)
             print(response)
+            tweet['response'] = response
             print(type(tweet))
             sns.publish(TopicArn = 'arn:aws:sns:us-east-1:990257065467:tweetsns', Message = json.dumps({'default':json.dumps(tweet)}),MessageStructure='json')
             # addto_elastic(tweet)
