@@ -20,7 +20,7 @@ locations = [
 
 js_value = json.dumps(locations)
 
-es=Elasticsearch([{'host':"search-tweet-3jeiq36jepy2fixj7nbot6kzci.us-east-1.es.amazonaws.com", 'port':80, 'use_ssl':False}])
+es=Elasticsearch([{'host':"search-tweetupdates-7tkahy3w7huhrpgiw5hnlcgk74.us-east-1.es.amazonaws.com", 'port':80, 'use_ssl':False}])
 
 
     
@@ -34,6 +34,7 @@ def main():
 def addto_elastic(data):
     res=es.index(index="newfinaltweetmap", doc_type='tweet', body=data)
     print (res['created'])
+    searchtweet()
 
 
 
@@ -43,6 +44,8 @@ def addto_elastic(data):
 def msg_process(msg, tstamp):
     js = json.loads(msg)
     print(js)
+    addto_elastic(js)
+    print("added to elasticsearch")
     # do stuff here, like calling your favorite SMS gateway API
 
 @application.route('/sns', methods = ['GET', 'POST', 'PUT'])
@@ -54,9 +57,7 @@ def sns():
         pass
 
     hdr = request.headers.get('X-Amz-Sns-Message-Type')
-    print("here")
     print(js)
-    print(hdr)
     # subscribe to the SNS topic
     if hdr == 'SubscriptionConfirmation' and 'SubscribeURL' in js:
         r = requests.get(js['SubscribeURL'])
@@ -64,7 +65,6 @@ def sns():
         print(r)
 
     if hdr == 'Notification':
-        print("notification")
         msg_process(js['Message'], js['Timestamp'])
 
     return 'OK\n'
@@ -100,6 +100,8 @@ def searchtweet():
     return jsonify(results=newlocations)
 
 @application.route("/search/<searchword>",methods=["GET"])
+
+
 def search(searchword):
     newRes=es.search(index="newfinaltweetmap", body={
         "query":
