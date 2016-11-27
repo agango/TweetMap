@@ -2,6 +2,7 @@ import json
 from flask import request
 from elasticsearch import Elasticsearch
 from flask import Flask, render_template, jsonify
+import requests
 
 
 
@@ -28,11 +29,19 @@ application=Flask(__name__)
 def main():
     return render_template('index.html', context=js_value)
 
+
+
+def addto_elastic(data):
+    res=es.index(index="newfinaltweetmap", doc_type='tweet', body=data)
+    print (res['created'])
+
+
+
+#update frontend here, this function is called when SNS notification comes
+#use addto_elastic to add 'msg'/'js' to elasticsearch instance 'es', probably has to reformat data
+#msg is tweet data from SNS
 def msg_process(msg, tstamp):
     js = json.loads(msg)
-    msg = 'Region: {0} / Alarm: {1}'.format(
-        js['Region'], js['AlarmName']
-    )
     print(js)
     # do stuff here, like calling your favorite SMS gateway API
 
@@ -45,6 +54,9 @@ def sns():
         pass
 
     hdr = request.headers.get('X-Amz-Sns-Message-Type')
+    print("here")
+    print(js)
+    print(hdr)
     # subscribe to the SNS topic
     if hdr == 'SubscriptionConfirmation' and 'SubscribeURL' in js:
         r = requests.get(js['SubscribeURL'])
@@ -105,12 +117,6 @@ def search(searchword):
     return jsonify(results=newlocations)
 
 if __name__ == "__main__":
-    application.run(debug=True, port=8080)
-
-
-
-
-
-
+    application.run(host = '129.236.226.219',debug=True, port=80)
 
 

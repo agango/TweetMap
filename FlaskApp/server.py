@@ -6,6 +6,7 @@ from tweepy import OAuthHandler
 from tweepy import Stream
 import boto3
 from watson_developer_cloud import AlchemyLanguageV1
+import time
 
 access_token="790035594604867584-Jhmohj3Dk2z5LotbHwzm9LFFLFgfUjc"
 access_token_secret="XVXmduRvXAr3z3BSXfEPQzwyisrbwAcIuktCLYWcywjM2"
@@ -52,7 +53,7 @@ class StdOutListener(StreamListener):
             data["text"]=json_data['text']
 
             tweets.append(data)
-            if(len(tweets)>3):
+            if(len(tweets)>2):
                 return False
             print("added")
             print(data)
@@ -68,13 +69,14 @@ class StdOutListener(StreamListener):
 
 
 
-def addto_elastic(data):
-    res=es.index(index="newfinaltweetmap", doc_type='tweet', body=data)
-    print (res['created'])
+# def addto_elastic(data):
+#     res=es.index(index="newfinaltweetmap", doc_type='tweet', body=data)
+#     print (res['created'])
 
 
 sqs = boto3.resource('sqs')
 queue = sqs.get_queue_by_name(QueueName='tweetmapSQS')
+sns = boto3.client('sns')
 
 def addto_queue(data):
 
@@ -83,8 +85,6 @@ def addto_queue(data):
     response = queue.send_message(MessageBody=js_value)
     # response = queue.send_message(MessageBody='boto3',MessageAttributes=data)
     print("added to queue")
-
-
 
 
 alchemy_language = AlchemyLanguageV1(api_key='b144cdedbb632e744d1acdaa34198f7c3fb42a75')
@@ -101,6 +101,9 @@ def process_message():
                 text=tweet['text']),
               indent=2)
             print(response)
+            print(type(tweet))
+            sns.publish(TopicArn = 'arn:aws:sns:us-east-1:990257065467:tweetsns', Message = json.dumps({'default':json.dumps(tweet)}),MessageStructure='json')
+            # addto_elastic(tweet)
         message.delete()
 
 
@@ -114,11 +117,12 @@ if __name__ == "__main__":
             auth.set_access_token(access_token, access_token_secret)
             stream = Stream(auth, l)
             stream.filter(languages=["en"],track=['car', 'house', 'country'])
-            break
+            print("about to add tweets to SQS que")
+            addto_queue(tweets)
+            print("about to process")
+            process_message()
+            time.sleep(10)
         except:
             continue
 
-print("about to add tweets to SQS que")
-addto_queue(tweets)
-print("about to process")
-process_message()
+
